@@ -1,6 +1,6 @@
 import numpy as np
 
-class observe():
+class ObsTime():
       """
       Creates an object to calculate the number of steps of observation in a given observational interval.
       Calculate the starting, observing, and ending steps in every observational interval from the first observation.

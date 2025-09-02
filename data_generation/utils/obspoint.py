@@ -1,6 +1,6 @@
 import numpy as np
 
-class vary_base():
+class ObsPoint():
       """
       Creates an object that reads the position of the observatory and source in radian.
       It return the variational position of baselines and the observational grids point.

@@ -1,0 +1,27 @@
+# --- Python cache and build ---
+__pycache__/
+build/
+
+# --- Jupyter notebooks checkpoints ---
+.ipynb_checkpoints/
+
+# --- IDE/project files ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- Data & generated outputs ---
+# Numpy arrays
+*.npy
+*.npz
+
+# Images
+*.png
+*.jpg
+*.jpeg
+
+# --- Logs ---
+*.log
+*.out
+*.err
