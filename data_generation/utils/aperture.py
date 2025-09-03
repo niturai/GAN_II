@@ -77,8 +77,8 @@ class Aperture():
         xcord: np.ndarray,
         ycord: np.ndarray,
         radii: float,
-        width: float | None = None,
-        orien: float | None = None,
+        width: float = None,
+        orien: float = None,
     ) -> None:
         """
         Plot the plane or cosine-masked circular apertures on the (x, y) grid.

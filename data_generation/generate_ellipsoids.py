@@ -87,9 +87,9 @@ def main():
     sx, sy, x, y = ep.grids(ds, N, lam)  # 512 x 512 arrays
 
     # Sweeps
-    rad = np.arange(3e-9, 1.6e-8, 2e-9)   # 3e-9, 5e-9, ..., 1.4e-8
-    inc = np.arange(0, 2*np.pi, np.pi/4)  # 0, π/4, ..., 7π/4
-    pa  = np.arange(0, 2*np.pi, np.pi/4)
+    rad = np.arange(3e-9, 1.6e-8, 1e-9)   # 3e-9, 5e-9, ..., 1.4e-8
+    inc = np.arange(0, 2*np.pi, np.pi/8)  # 0, π/4, ..., 7π/4
+    pa  = np.arange(0, 2*np.pi, np.pi/8)
     sq  = np.arange(0.5, 1.0, 0.1)
 
     pic = 0
