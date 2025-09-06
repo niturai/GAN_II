@@ -47,7 +47,7 @@ def main(base_path: str):
     fn = GanUtils(img_size=128)
     mfn = CGAN()
 
-    BATCH_SIZE = 32      # Number of samples per training iteration
+    BATCH_SIZE = 1      # Number of samples per training iteration
     BUFFER_SIZE = 140  # Shuffle buffer size for dataset
 
     mfn.gan_para(
@@ -73,13 +73,13 @@ def main(base_path: str):
     # ---------------------------------------------------------------------
     generator = mfn.Generator()
     tf.keras.utils.plot_model(
-        generator, to_file="testing_image/generator.png", show_shapes=True, dpi=64
+        generator, to_file=os.path.join(base_path, "testing_image/generator.png"), show_shapes=True, dpi=64
     )
 
     gen_output = generator(sample_input[tf.newaxis, ...], training=True)
     plt.imshow(gen_output[0, ...])
     plt.title("Generator Output")
-    plt.savefig("testing_image/gen.png")
+    plt.savefig(os.path.join(base_path, "testing_image/gen.png"))
     plt.show()
 
     # ---------------------------------------------------------------------
@@ -87,14 +87,14 @@ def main(base_path: str):
     # ---------------------------------------------------------------------
     discriminator = mfn.Discriminator()
     tf.keras.utils.plot_model(
-        discriminator, to_file="testing_image/discriminator.png", show_shapes=True, dpi=64
+        discriminator, to_file=os.path.join(base_path, "testing_image/discriminator.png"), show_shapes=True, dpi=64
     )
 
     disc_out = discriminator([sample_input[tf.newaxis, :], gen_output], training=False)
     plt.imshow(disc_out[0, ..., -1], vmin=-10, vmax=10, cmap="RdBu_r")
     plt.colorbar()
     plt.title("Discriminator Output")
-    plt.savefig("testing_image/disc.png")
+    plt.savefig(os.path.join(base_path, "testing_image/disc.png"))
     plt.show()
 
     # ---------------------------------------------------------------------
@@ -108,7 +108,7 @@ def main(base_path: str):
     # DATASET PREPARATION
     # ---------------------------------------------------------------------
     train_dataset = tf.data.Dataset.list_files(os.path.join(base_path, "output/train/*.jpg"))
-    train_dataset = train_dataset.map(fn.load_image_train, num_parallel_calls=tf.data.AUTOTUNE)
+    train_dataset = train_dataset.map(fn.load_image_train)
     train_dataset = train_dataset.shuffle(BUFFER_SIZE)
     train_dataset = train_dataset.batch(BATCH_SIZE)
 

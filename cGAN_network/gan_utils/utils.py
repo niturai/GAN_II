@@ -79,12 +79,6 @@ class GanUtils:
 
         return input_image, real_image
 
-    # def load_image_train(self, image_file):
-    #     """Load and preprocess training image pair."""
-    #     input_image, real_image = self.load(image_file)
-    #     input_image, real_image = self.random_jitter(input_image, real_image)
-    #     input_image, real_image = self.normalize(input_image, real_image)
-    #     return input_image, real_image
     def load_image_train(self, image_file):
         input_image, real_image = self.load(image_file)  # decode_jpeg(channels=1)
         input_image, real_image = self.random_jitter(input_image, real_image)
@@ -101,25 +95,6 @@ class GanUtils:
         input_image, real_image = self.resize(input_image, real_image, self.img_size, self.img_size)
         input_image, real_image = self.normalize(input_image, real_image)
         return input_image, real_image
-
-    # ------------------------------------------------------------------
-    # Noise
-    # ------------------------------------------------------------------
-    # def salt_and_pepper(self, image, prob=0.005):
-    #     """
-    #     Add salt & pepper noise.
-
-    #     Parameters
-    #     ----------
-    #     image : tf.Tensor
-    #         Input image tensor (H, W, C).
-    #     prob : float
-    #         Probability of flipping a pixel to black or white.
-    #     """
-    #     random_values = tf.random.uniform(shape=tf.shape(image), dtype=tf.float32)
-    #     noisy = tf.where(random_values < (prob / 2), 0.0, image)              # pepper
-    #     noisy = tf.where(random_values > 1 - (prob / 2), 255.0, noisy)        # salt
-    #     return noisy
 
     # ------------------------------------------------------------------
     # Fourier utilities

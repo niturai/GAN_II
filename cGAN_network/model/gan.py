@@ -223,7 +223,7 @@ class CGAN():
              if counter == None:
                 raise Warning("You do not have a counter. Images will be overwritten and NOT be saved.")
        
-             plot_name = f"testing_image/testing_image/image_{counter}"
+             plot_name = os.path.join(self.base_path, f"testing_image/testing_image/image_{counter}")
         
              if counter == 0:
                 if not os.path.exists(f"{plot_name[:-8]}"):
@@ -233,120 +233,6 @@ class CGAN():
              plt.savefig(f"{plot_name}.eps", format='eps', dpi=500)
              plt.savefig(f"{plot_name}.png")
              
-                         
-    #   def train_step(self, model1, model2, input_image, target, summary_writer=None, step=None):
-    #         """
-    #         Perform one training step (per replica).
-    #         This is called inside the distributed strategy.
-    #         """
-    #         with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
-    #             gen_output = model1(input_image, training=True)
-    #             disc_real_output = model2([input_image, target], training=True)
-    #             disc_generated_output = model2([input_image, gen_output], training=True)
-
-    #             gen_total_loss, gen_gan_loss, gen_l1_loss = self.generator_loss(
-    #                 disc_generated_output, gen_output, target
-    #             )
-    #             disc_loss = self.discriminator_loss(disc_real_output, disc_generated_output)
-
-    #         # Compute gradients
-    #         gen_gradients = gen_tape.gradient(gen_total_loss, model1.trainable_variables)
-    #         disc_gradients = disc_tape.gradient(disc_loss, model2.trainable_variables)
-
-    #         # Apply gradients
-    #         self.gen_optimizer.apply_gradients(zip(gen_gradients, model1.trainable_variables))
-    #         self.disc_optimizer.apply_gradients(zip(disc_gradients, model2.trainable_variables))
-
-    #         # Logging
-    #         if summary_writer and step is not None:
-    #             with summary_writer.as_default():
-    #                 tf.summary.scalar("gen_total_loss", gen_total_loss, step=step)
-    #                 tf.summary.scalar("gen_gan_loss", gen_gan_loss, step=step)
-    #                 tf.summary.scalar("gen_l1_loss", gen_l1_loss, step=step)
-    #                 tf.summary.scalar("disc_loss", disc_loss, step=step)
-
-    #         return gen_total_loss, disc_loss
-
-
-    #   def fit(self, model1_fn, model2_fn, train_ds, test_ds, steps):
-    #         """
-    #         Training loop with multi-GPU support, logging, and checkpoints.
-    #         model1_fn, model2_fn: callables returning new generator/discriminator instances.
-    #         """
-    #         import datetime, os
-
-    #         strategy = tf.distribute.MirroredStrategy()
-    #         print(f"[INFO] Using {strategy.num_replicas_in_sync} GPUs")
-
-    #         GLOBAL_BATCH_SIZE = 16 * strategy.num_replicas_in_sync
-
-    #         # Prepare datasets
-    #         train_ds = train_ds.batch(GLOBAL_BATCH_SIZE, drop_remainder=True).prefetch(tf.data.AUTOTUNE)
-    #         test_ds  = test_ds.batch(GLOBAL_BATCH_SIZE, drop_remainder=True).prefetch(tf.data.AUTOTUNE)
-
-
-    #         with strategy.scope():
-    #             # Build models + optimizers under scope
-    #             model1 = model1_fn()
-    #             model2 = model2_fn()
-    #             self.gen_optimizer = tf.keras.optimizers.Adam(self.learning_rate, beta_1=0.5)
-    #             self.disc_optimizer = tf.keras.optimizers.Adam(self.learning_rate, beta_1=0.5)
-
-    #             # Checkpoint setup
-    #             run_name = (
-    #                 f"cGAN_b{self.beta}_disc{self.disc_train_iterations}_"
-    #                 f"bs{GLOBAL_BATCH_SIZE}_lr{self.learning_rate}_f{self.filtersize}"
-    #             )
-    #             checkpoint_dir = os.path.join("models", run_name)
-    #             os.makedirs(checkpoint_dir, exist_ok=True)
-
-    #             log_dir = os.path.join("logs", "fit", run_name)
-    #             summary_writer = tf.summary.create_file_writer(log_dir)
-
-    #             checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt")
-    #             checkpoint = tf.train.Checkpoint(
-    #                 generator_optimizer=self.gen_optimizer,
-    #                 discriminator_optimizer=self.disc_optimizer,
-    #                 generator=model1,
-    #                 discriminator=model2,
-    #             )
-
-    #         # Wrap train_step in @tf.function and strategy.run
-    #         @tf.function
-    #         def distributed_train_step(inputs, step):
-    #             input_image, target = inputs
-    #             per_replica_losses = strategy.run(
-    #                 self.train_step, args=(model1, model2, input_image, target, summary_writer, step)
-    #             )
-    #             return per_replica_losses
-
-    #         # Example image
-    #         example_input, example_target = next(iter(test_ds.take(1)))
-    #         start = time.time()
-    #         counter = 0
-
-    #         for step, inputs in enumerate(train_ds.repeat().take(steps)):
-    #             gen_loss, disc_loss = distributed_train_step(inputs, step)
-
-    #             if step % 1000 == 0:
-    #                 display.clear_output(wait=True)
-    #                 if step != 0:
-    #                     print(f"Time for 1000 steps: {time.time() - start:.2f} sec\n")
-    #                 start = time.time()
-
-    #                 self.generate_images(
-    #                     model1, example_input, example_target,
-    #                     show_diff=True, sampling=True, save_image=True, counter=counter
-    #                 )
-    #                 counter += 1
-    #                 print(f"Step: {step // 1000}k")
-
-    #             if (step + 1) % 10 == 0:
-    #                 print(".", end="", flush=True)
-
-    #             if (step + 1) % 5000 == 0:
-    #                 checkpoint.save(file_prefix=checkpoint_prefix)
-
 
       def train_step(self, model1, model2, input_image, target, summary_writer=None, step=None):
             """
@@ -394,10 +280,10 @@ class CGAN():
                 f"cGAN_b{self.beta}_disc{self.disc_train_iterations}_"
                 f"bs{self.batch_size}_lr{self.learning_rate}_f{self.filtersize}"
             )
-            checkpoint_dir = os.path.join("models", run_name)
+            checkpoint_dir = os.path.join(self.base_path, "models", run_name)
             os.makedirs(checkpoint_dir, exist_ok=True)
 
-            log_dir = os.path.join("logs", "fit", run_name)
+            log_dir = os.path.join(self.base_path, "logs", "fit", run_name)
             os.makedirs(log_dir, exist_ok=True)
             summary_writer = tf.summary.create_file_writer(log_dir)
 
