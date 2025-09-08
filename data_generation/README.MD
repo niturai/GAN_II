@@ -20,7 +20,7 @@ The goal is to produce ML-ready datasets that can be used by the cGAN network.
 2. **Generate telescope and baseline configuration**
 
    ```bash
-   python generate_baseline.py --path /path/to/output_dir/
+   python generate_baseline.py --path /path/to/output_dir/ --ntele 4
    ```
 
 3. **Combine (1) and (2) to generate input data for cGAN**

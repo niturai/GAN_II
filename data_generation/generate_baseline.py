@@ -40,7 +40,14 @@ def main():
         default=Path.cwd() / "base",
         help="Base directory for saving results (default: ./base)",
     )
+    parser.add_argument(
+        "--ntele",
+        type=int,
+        default=4,
+        help="Number of telescopes that sample the star (default: 4)",
+    )
     output_dir = parser.parse_args().path
+    n_tele = parser.parse_args().ntele
     os.makedirs(output_dir, exist_ok=True)
 
     # --- Observation time for Intensity Interferometry ---
@@ -58,6 +65,10 @@ def main():
     y = np.linspace(-60, 80, 500)
     Tname = ["T1", "T2", "T3", "T4"]
     Tpos = [135 - 15j, 40 - 50j, 30 + 60j, -40 + 10j]
+
+    # Select number of telescopes:
+    Tname = Tname[:n_tele]
+    Tpos = Tpos[:n_tele]
 
     # Apply rotation factor
     ang = np.exp(0.1j)

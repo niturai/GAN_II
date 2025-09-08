@@ -11,4 +11,4 @@
 module load python
 conda activate new_env
 
-python -m generate_ellipsoids --path /global/cfs/projectdirs/m2676/users/yuvand/GAN_II/
+python -m generate_ellipsoids --path /global/cfs/projectdirs/m2676/users/yuvand/GAN_III/

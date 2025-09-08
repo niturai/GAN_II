@@ -125,7 +125,7 @@ def main(base_path: str):
     # ---------------------------------------------------------------------
     # TRAINING LOOP
     # --------------------------------------------------------------------
-    mfn.fit(generator, discriminator, train_dataset, test_dataset, steps=60000)
+    mfn.fit(generator, discriminator, train_dataset, test_dataset, steps=100000)
 
 
     # Generate predictions for a subset of test images
