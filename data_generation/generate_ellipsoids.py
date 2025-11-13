@@ -25,7 +25,7 @@ from utils.ellipsoid import Ellipsoid
 
 # ---------------- Configuration ----------------
 USE_COLORBAR = False         # True = slower w/ colorbar; False = fastest
-SAVE_PREVIEWS = False         # False = skip images entirely
+SAVE_PREVIEWS = False        # False = skip images entirely
 DPI = 300
 CMAP = None                  # e.g., "inferno" or None for default
 # ------------------------------------------------
