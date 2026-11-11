@@ -8,8 +8,8 @@ import re
 md = mom()
 
 # The Directory of all images  
-gr_img6 = "result/six/testing_image/"
-gr_img9 = "result/nine/testing_image/testing_image/"
+gr_img6 = "result/six/testing_image/disc_rep_1/test/"
+gr_img9 = "result/nine/testing_image/disc_rep_1/test/"
 data_path6 = os.path.join(gr_img6, "image_*_target.npy")
 data_path9 = os.path.join(gr_img9, "image_*_target.npy")
 files16 = glob.glob(data_path6)
@@ -49,60 +49,12 @@ pr_img6 = np.array(pred_img6)
 gr_img9 = np.array(ground_img9)
 pr_img9 = np.array(pred_img9)
 
-print(gr_img6.shape)
-
 # Calculate the Scatter of centroid and moments for ground truth and predicted image
-SixSc, SixS11, SixS20, SixS02, SixS12, SixS21, SixS30, SixS03, error = md.mom_cal(gr_img6, pr_img6)
-nineSc, nineS11, nineS20, nineS02, nineS12, nineS21, nineS30, nineS03, error = md.mom_cal(gr_img9, pr_img9)
+SixSc, SixS11, SixS20, SixS02, SixS12, SixS21, SixS30, SixS03 = md.mom_cal(gr_img6, pr_img6)
+nineSc, nineS11, nineS20, nineS02, nineS12, nineS21, nineS30, nineS03 = md.mom_cal(gr_img9, pr_img9)
 
 print('6Sc, 6S11, 6S20, 6S02, 6S12, 6S21, 6S30, 6S03', SixSc, SixS11, SixS20, SixS02, SixS12, SixS21, SixS30, SixS03)
 print('9Sc, 9S11, 9S20, 9S02, 9S12, 9S21, 9S30, 9S03', nineSc, nineS11, nineS20, nineS02, nineS12, nineS21, nineS30, nineS03)
-print("Centroid error:")
-print("Mean =", errors["centroid"]["mean_error"])
-print("SD   =", errors["centroid"]["std_error"])
-print("RMSE =", errors["centroid"]["rmse"])
-
-print("\nSecond-order moment mu11:")
-print("Mean signed error =", errors["mu11"]["mean_error"])
-print("SD                =", errors["mu11"]["std_error"])
-print("MAE               =", errors["mu11"]["mae"])
-print("RMSE              =", errors["mu11"]["rmse"])
-
-print("\nSecond-order moment mu20:")
-print("Mean signed error =", errors["mu20"]["mean_error"])
-print("SD                =", errors["mu20"]["std_error"])
-print("MAE               =", errors["mu20"]["mae"])
-print("RMSE              =", errors["mu20"]["rmse"])
-
-print("\nSecond-order moment mu02:")
-print("Mean signed error =", errors["mu02"]["mean_error"])
-print("SD                =", errors["mu02"]["std_error"])
-print("MAE               =", errors["mu02"]["mae"])
-print("RMSE              =", errors["mu02"]["rmse"])
-
-print("\nthird-order moment mu21:")
-print("Mean signed error =", errors["mu21"]["mean_error"])
-print("SD                =", errors["mu21"]["std_error"])
-print("MAE               =", errors["mu21"]["rmse"])
-print("RMSE              =", errors["mu21"]["mae"])
-
-print("\nthird-order moment mu12:")
-print("Mean signed error =", errors["mu12"]["mean_error"])
-print("SD                =", errors["mu12"]["std_error"])
-print("MAE               =", errors["mu12"]["rmse"])
-print("RMSE              =", errors["mu12"]["mae"])
-
-print("\nthird-order moment mu30:")
-print("Mean signed error =", errors["mu30"]["mean_error"])
-print("SD                =", errors["mu30"]["std_error"])
-print("MAE               =", errors["mu30"]["rmse"])
-print("RMSE              =", errors["mu30"]["mae"])
-
-print("\nthird-order moment mu03:")
-print("Mean signed error =", errors["mu03"]["mean_error"])
-print("SD                =", errors["mu03"]["std_error"])
-print("MAE               =", errors["mu03"]["rmse"])
-print("RMSE              =", errors["mu03"]["mae"])
 
 errors_N6 = md.parameter_errors(gr_img6, pr_img6)                  # Calculate errors for N6
 errors_N9 = md.parameter_errors(gr_img9, pr_img9)                  # Calculate errors for N9
@@ -150,9 +102,9 @@ Mth_g6 = []
 Mth_p6 = []
 Mth_g9 = []
 Mth_p9 = []
-m_name = ['Monopole', 'X-Centroid', 'Y-Centroid', '2nd Moment $\mu_{11}$', 
-          '2nd Moment $\mu_{20}$', '2nd Moment $\mu_{02}$', '3rd Moment $\mu_{30}$', 
-          '3rd Moment $\mu_{03}$','3rd Moment $\mu_{21}$', '3rd Moment $\mu_{12}$']
+m_name = ['Monopole (Norm. Inten.)', 'X-Centroid (mas)', 'Y-Centroid (mas)', '2nd Moment $\mu_{11} (mas)^2$', 
+          '2nd Moment $\mu_{20} (mas)^2$', '2nd Moment $\mu_{02} (mas)^2$', '3rd Moment $\mu_{30} (mas)^3$', 
+          '3rd Moment $\mu_{03} (mas)^3$','3rd Moment $\mu_{21} (mas)^3$', '3rd Moment $\mu_{12} (mas)^3$']
 pic = 0
 for i in range(len(list_g6[0])):
     plt.rcParams.update({'font.size': 12})
@@ -172,11 +124,11 @@ for i in range(len(list_g6[0])):
     plt.xlabel('Ground Truth')
     plt.ylabel('Predicted Image')
     plt.ticklabel_format(style='sci', axis='both', scilimits=(0,0))
-    plt.title(f'{m_name[i]} for Stellar object', fontweight='bold')
+    plt.title(f'{m_name[i]} of 100 Image', fontweight='bold')
     plt.tight_layout()
     plt.savefig('result/moments/mom' + str(pic) + '.png')
     plt.clf()
     pic += 1
     plt.close()
-    
+   
 

@@ -7,7 +7,7 @@ import re
 
 
 # Load all .npy file
-main = "testing_image/"
+main = "../result/nine/testing_image/disc_rep_1/test"
 
 data_path = os.path.join(main, "image_*_input.npy")
 files1 = glob.glob(data_path)
@@ -80,7 +80,7 @@ for i in range(len(Inp)):
     plt.gca().yaxis.set_major_formatter(mticker.FormatStrFormatter('%.2f'))
     #plt.ylabel("Mean Residuals")
     plt.tight_layout()
-    plt.savefig(f"../result/nine/image/image_{counter}.png", dpi=300)
+    plt.savefig(f"image/image_{counter}.png", dpi=300)
     counter += 1
     plt.clf()
     

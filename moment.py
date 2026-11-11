@@ -104,31 +104,8 @@ class mom():
           S21 = scatter["mu21"]
           S30 = scatter["mu30"]
           S03 = scatter["mu03"]
-
-          # 2. Per-image errors and summary statistics
-          errors = {}
-          centroid_error = np.sqrt((mxG - mxP)**2 + (myG - myP)**2) # Centroid displacement for each image
-          errors["centroid"] = {
-              "per_image": centroid_error,
-              "mean_error": np.mean(centroid_error),
-              "std_error": np.std(centroid_error, ddof=1),
-              "rmse": np.sqrt(np.mean(centroid_error**2)),
-              "mae": np.mean(np.abs(centroid_error)),
-          }
-
-          # Signed errors for each central moment
-          for name, (gt, pred) in moment_pairs.items():
-              difference = pred - gt
-
-              errors[name] = {
-                  "per_image": difference,
-                  "mean_error": np.mean(difference),
-                  "std_error": np.std(difference, ddof=1),
-                  "rmse": np.sqrt(np.mean(difference**2)),
-                  "mae": np.mean(np.abs(difference)),
-              }
-
-          return (Sc, S11, S20, S02, S12, S21, S30, S03, errors)
+          
+          return (Sc, S11, S20, S02, S12, S21, S30, S03)
           
       def asym(self, img):
           img180 = img[::-1, ::-1]             # Rotate by 180 degrees          
