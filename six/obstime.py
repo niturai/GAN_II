@@ -25,7 +25,7 @@ class observe():
           steps : array
                   Return the number of steps in each observational interval.
           """
-          st = [] 
+          st = []
           for i in range(0, len(s_obs), 1):
                dobs = e_obs[i] - s_obs[i]
                dobs /= N_obs

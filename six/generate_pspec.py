@@ -17,13 +17,8 @@ save_images = True
 Script that calculates the Power spectrum (2D-FFT) of an image (i.e. a stellar source). Then automatically creates training, testing and validation datasets. Includes addition of Salt and Pepper noise. Output: test, train and validation folders contaning merged images (stellar objects in sky and on observational plane), ready to be used in the model.
 """
 
-# Create the folder if it doesn't exist
-os.makedirs("val", exist_ok=True)
-os.makedirs("test", exist_ok=True)
-os.makedirs("train", exist_ok=True)
-
-base = np.load("base_npy/base.npy")                                                                   # the baseline in .npy format
-path_in = "ellip_npy/"                                                                                # the ellipsoid image in .npy format
+base = np.load("../result/six/base_npy/base.npy")                                                     # the baseline in .npy format
+path_in = "../result/ellip_npy/"                                                                      # the ellipsoid image in .npy format
 counter = 0
 for filename in os.listdir(path_in):
     f = os.path.join(path_in, filename)                                                               # load image
@@ -55,7 +50,7 @@ for filename in os.listdir(path_in):
        rnd = random.random()  # returns float in [0,1)
        plt.figure(figsize=(8, 8))
        if rnd < 0.1:  # 10% for validation
-            save_path = os.path.join("val", image_name + ".jpg")
+            save_path = os.path.join("../result/six/val", image_name + ".jpg")
             '''
             im = plt.imshow(combined_image, cmap='gray', aspect='equal')
             cbar = plt.colorbar(im, shrink=0.45, fraction=0.046, pad=0.04)
@@ -67,7 +62,7 @@ for filename in os.listdir(path_in):
             plt.close()
             '''
        elif rnd < 0.2:  # next 10% for testing
-            save_path = os.path.join("test", image_name + ".jpg")
+            save_path = os.path.join("../result/six/test", image_name + ".jpg")
             '''
             im = plt.imshow(combined_image, cmap='gray', aspect='equal')
             cbar = plt.colorbar(im, shrink=0.45, fraction=0.046, pad=0.04)
@@ -89,7 +84,7 @@ for filename in os.listdir(path_in):
             plt.clf()
             plt.close()
             '''
-            save_path = os.path.join("train", image_name + ".jpg")
+            save_path = os.path.join("../result/six/train", image_name + ".jpg")
 
        cv2.imwrite(save_path, combined_image)
 

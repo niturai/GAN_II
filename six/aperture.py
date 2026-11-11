@@ -1,6 +1,8 @@
+import matplotlib.colors as mcolors
 from itertools import combinations
 import matplotlib.pyplot as plt
 import numpy as np
+import colorsys
 
 class aper():
       """
@@ -61,8 +63,9 @@ class aper():
           n = np.imag(base)
           x, y = np.meshgrid(xcord, ycord)
           plt.close()
-          plt.rcParams.update({'font.size': 14})
-          plt.rcParams["figure.figsize"] = [12,12]
+          plt.rcParams.update({'font.size': 12})
+          plt.rcParams["figure.figsize"] = [6,6]
+          plt.rcParams['axes.facecolor']='ivory'
           plt.rcParams["font.weight"] = "bold"
           plt.rcParams["axes.labelweight"] = "bold"
           for j in range(len(Tposi)):
@@ -74,15 +77,15 @@ class aper():
                  w = self.aper(x-east[j], y-north[j], radii, width, orien)
               plt.contour(x, y, w, colors='darkgrey')
               tel = Tname[j]
-              plt.annotate(tel,  xy = (east[j], north[j]), size=10, color='black', fontweight='bold')
+              plt.annotate(tel,  xy = (east[j], north[j]), size=10, color='darkred', fontweight='bold')
           for i in range(len(e)):   
               plt.plot(e[i], n[i], '--')
           plt.xlabel('East in meter')
           plt.ylabel('North in meter')
           plt.title("Position of Telescopes", fontweight='bold')
           plt.savefig(fname)
-          
-
+          plt.close()
+ 
       def baseline(self, Tposi, Tname):
           """
           Return the name and length of baselines for N number of telescopes.
@@ -112,4 +115,17 @@ class aper():
               base.append(i[1] - i[0])
           return tel, base 
 
-
+      def colors(self):
+          """
+          Return the list of dark colors
+          """
+          css4_colors = mcolors.CSS4_COLORS                              # Get all CSS4 colors
+          dark_colors = []                                               # Convert hex to RGB, then to HLS to check luminance
+          for name, hex in css4_colors.items():
+              r, g, b = mcolors.to_rgb(hex)
+              h, l, s = colorsys.rgb_to_hls(r, g, b)
+              if l < 0.5:                                                # Lightness threshold for dark color
+                 dark_colors.append(name)
+              
+          colors = dark_colors
+          return colors

@@ -4,15 +4,14 @@ from obstime import observe
 from obspoint import vary_base
 import matplotlib.pyplot as plt
 import cv2
-import os 
 
 ap = aper()
 obs = observe()
 vb = vary_base()
 
 # observation time for Intensity Interferometry
-start = [2460311.20167]#, 2460312.20167, 2460313.20167, 2460314.20167, 2460315.20167]   # (Jan 1-5, 2024, 7pm)
-end = [2460311.70833]#, 2460312.70833, 2460313.70833, 2460314.70833, 2460315.70833]     # (Jan 2-6, 2024, 5am)
+start = [2460311.20167]
+end = [2460311.70833]
 step = obs.obslen(start, end, 0.0104167)
 jd = obs.julday(start, end, step)
 
@@ -23,13 +22,12 @@ lo = vb.raddeg(110, 57, 7)
 
 # coordinates for telescope
 x = np.linspace(-60, 150, 500)
-y = np.linspace(-60, 80, 500)
-Tname = ['T1', 'T2', 'T3', 'T4'] 
-Tpos = [135 - 15j, 40 - 50j, 30 + 60j, -40 + 10j]
+y = np.linspace(-60, 85, 500)
+Tname = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6'] 
+Tpos = [135 - 20j, 40 - 50j, 0 + 60j, -40 + 5j, 50 + 20j, 90+65j]
 ang = np.exp(0.1j)
 Tpos = [ang*x for x in Tpos]
-
-fname = 'telescope.png'
+fname = '../result/six/telescope.png'
 ap.telescope(Tpos, Tname, fname, x, y, 6)
 
 # baseline name and length (x, y)
@@ -53,37 +51,36 @@ xt = distance[:,0]           # baselines in east direction
 yt = distance[:,1]           # baselines in north direction
 zt = distance[:,2]           # baseline in up
 
-
 # plot the covered (u,v) plane with baselines (comment out the lines for the visualizations of baseline only)
 plt.close()
-plt.rcParams.update({'font.size': 15})
-plt.rcParams["figure.figsize"] = [12,8]
+plt.rcParams.update({'font.size': 12})
+plt.rcParams["figure.figsize"] = [6,6]
+plt.rcParams['axes.facecolor']='ivory'
 plt.rcParams["font.weight"] = "bold"
 plt.rcParams["axes.labelweight"] = "bold"
 st = np.cumsum(step)
-
-os.makedirs('base', exist_ok=True)
-os.makedirs('base_npy', exist_ok=True)
-
-#color = ['cornflowerblue', 'orange', 'cyan', 'olive', 'red', 'purple']
+dark_colors = ap.colors()
+color = dark_colors[:len(xt)]                                  # Limit to first N number of dark colors (Number of baseline)
 for k in range(0, len(xt), 1):
-    plt.plot(xt[k,:], yt[k,:], '.', color='black')#, 'o', markeredgecolor='blue', markersize=6, markeredgewidth=1.5, color=color[k], )
+    #plt.plot(xt[k,:], yt[k,:], '.', color='black')
+    plt.plot(xt[k,:], yt[k,:], 'o', markersize=4, color=color[k])
     
-plt.axis('off')
-plt.gca().set_aspect('equal')
-#plt.xlabel('Along East in meter')
-#plt.ylabel('Along North in meter')
-#plt.title('The covered observational (u, v) plane', fontweight='bold')
-plt.savefig('base/baseline.png')#, bbox_inches='tight', pad_inches=0, dpi=500)
+#plt.axis('off')
+#plt.gca().set_aspect('equal')
+plt.xlabel('Along East in meter')
+plt.ylabel('Along North in meter')
+plt.title('Covered Observational (u, v) Plane', fontweight='bold')
+plt.savefig('../result/six/base/baseline_1.png')
+#plt.savefig('../result/six/base/baseline.png')#, bbox_inches='tight', pad_inches=0, dpi=500)
 
 
 # Convert the observational plane to grayscale and re-arrange pixels and save the baseline in .npy format
-base = plt.imread("base/baseline.png")
+base = plt.imread("../result/six/base/baseline.png")
 image_size = 128  # px
 mask = cv2.cvtColor(base, cv2.COLOR_BGR2GRAY)
 mask = np.where(mask < 1, 1, 0).astype(np.float32)                                    # Return elements chosen from x or y depending on condition (condition, x, y)
 mask = cv2.resize(mask, dsize=(image_size, image_size), interpolation=cv2.INTER_AREA) # gives the best results
 mask = np.where(mask > 0, 1, 0)
-np.save("base_npy/base", mask)                                                        # Save mask as numpy array
+np.save("../result/six/base_npy/base", mask)                                                        # Save mask as numpy array
 
 print("finished")

@@ -23,14 +23,14 @@ class main_fun():
           Observed signla on observational plane (u, v) and Sky image (ground truth)
           """
           
-          image = tf.io.read_file(image_file)                                     # read the jpeg file as a tensor of dtype "string"
-          image = tf.io.decode_jpeg(image)                                        # convert or decode the jpeg to unit8 tensor
+          image = tf.io.read_file(image_file)   # read the jpeg file as a tensor of dtype "string"
+          image = tf.io.decode_jpeg(image)      # convert or decode the jpeg to unit8 tensor
           
           # Split the combined image (object in sky and on observational plane) into two different image
-          w = tf.shape(image)[1]                                                  # as the image has been added horizontally [1], [0] if vertically
-          w = w // 2                                                              # equal division of width of original image
-          real_image = image[:, :w, :]                                            # first half (w) is sky image
-          input_image = image[:, w:, :]                                           # second half (w) is observed image (power spectrum)
+          w = tf.shape(image)[1]                # as the image has been added horizontally [1], [0] if vertically
+          w = w // 2                            # equal division of width of original image
+          real_image = image[:, :w, :]          # first half (w) is sky image
+          input_image = image[:, w:, :]         # second half (w) is observed image (power spectrum)
           
           
           # convert both input image from unit8 to float32 tensor using tf.cast
@@ -75,8 +75,9 @@ class main_fun():
           Croped sky and observed image according to image size.
           """
           
-          stacked_image = tf.stack([input_image, real_image], axis=0)                                    # Stacks the given tensor [sky_image, obs_image] into 1 higher rank tensor
-          cropped_image = tf.image.random_crop(stacked_image, size=[2, self.img_size, self.img_size, 1])    # Randomly crops a tensor to a given image size into 2 image [sky_image, obs_image].
+          stacked_image = tf.stack([input_image, real_image], axis=0)  # Stacks the given tensor [sky_image, obs_image] into 1 higher rank tensor
+          cropped_image = tf.image.random_crop(stacked_image, 
+                          size=[2, self.img_size, self.img_size, 1])    # Randomly crops a tensor to a given image size into 2 image [sky_image, obs_image].
           
           return cropped_image[0], cropped_image[1]
                     
@@ -95,9 +96,9 @@ class main_fun():
           Normalize the image according to image size.
           """
           
-          input_image = (input_image / (self.img_size - 0.5)) - 1                                       # maximum element number in sky_image is 255 and minimum is 0
-          real_image = (real_image / (self.img_size - 0.5)) - 1                                         # maximum element number in obs_image is 255 and minimum is 0
-         
+          input_image = (input_image / (self.img_size - 0.5)) - 1   # maximum element number in sky_image is 255 and minimum is 0
+          real_image = (real_image / (self.img_size - 0.5)) - 1     # maximum element number in obs_image is 255 and minimum is 0
+          
           return input_image, real_image
           
       @tf.function()   
@@ -114,11 +115,11 @@ class main_fun():
           Jittered images according to image size.
           """
           input_image, real_image = self.resize(input_image, real_image, int(self.img_size + self.img_size*0.0625), 
-                                             int(self.img_size + self.img_size*0.0625))                   # Resizing by 6.25%, so the shape of image is (136, 136)
-          input_image, real_image = self.random_crop(input_image, real_image)                             # Random cropping back and image size is (128, 128) again
+                                             int(self.img_size + self.img_size*0.0625)) # Resizing by 6.25%, so the shape of image is (136, 136)
+          input_image, real_image = self.random_crop(input_image, real_image)           # Random cropping back and image size is (128, 128) again
           
-          if tf.random.uniform(()) > 0.5:                                                                 # the half set of images as signal is squared visibility and phase remains in visibility
-             input_image = tf.image.flip_left_right(input_image)                                          # flip images from left to right
+          if tf.random.uniform(()) > 0.5:                # the half set of images as signal is squared visibility and phase remains in visibility
+             input_image = tf.image.flip_left_right(input_image)    # flip images from left to right
              real_image = tf.image.flip_left_right(real_image)
           
           return input_image, real_image
@@ -179,12 +180,12 @@ class main_fun():
           """
           
           if display_img:
-             random_values = tf.random.uniform(shape=image.shape)                                           # Outputs random values (0, 1) from a uniform distribution in shape (128, 128, 1).
+             random_values = tf.random.uniform(shape=image.shape)  # Outputs random values (0, 1) from a uniform distribution in shape (128, 128, 1).
           else:
-             random_values = tf.random.uniform(shape=image[0,:,:,:].shape)                                  # Outputs random values (0, 1) from a uniform distribution in shape (128, 1).
+             random_values = tf.random.uniform(shape=image[0,:,:,:].shape)# Outputs random values (0, 1) from a uniform distribution in shape (128, 1).
           
-          image = tf.where(random_values < (prob/2), self.img_size - 1., image)                             # tf.where(condition, a, b), a has the same dimension as condition has.
-          image = tf.where(1 - random_values < (prob/2), 0., image)
+          noisy = tf.where(random_values < prob / 2.0, tf.ones_like(image), image) # tf.where(condition, a, b), a has the same dimension as condition has.
+          image = tf.where(random_values >= 1.0 - prob / 2.0, -tf.ones_like(image), noisy)
           return image
           
       def ff2d_diff(self, image1, image2, sampling=False):
@@ -199,14 +200,14 @@ class main_fun():
           absolute difference between Fourier-shifted 2D FFT 
           """   
           
-          image1_fft = np.abs(fft.fftshift(fft.fft2(fft.fftshift(image1))))                                 # visibility (II signal)
+          image1_fft = np.abs(fft.fftshift(fft.fft2(fft.fftshift(image1))))    # visibility (II signal)
           image2_fft = np.abs(fft.fftshift(fft.fft2(fft.fftshift(image2))))
          
           output = (image1_fft - image2_fft)
           
           if sampling:
-             sampling_mask = np.load("base_npy/base.npy")
-             output = np.multiply(output, sampling_mask)                                                    # visibility (II signal) for the given baselines
+             sampling_mask = np.load("../result/six/base_npy/base.npy")
+             output = np.multiply(output, sampling_mask)     # visibility (II signal) for the given baselines
              
           return output
       
@@ -215,16 +216,16 @@ class main_fun():
           To scale down the network
           """
           
-          initializer = tf.random_normal_initializer(0.0, 0.02)                        # Initializer that generates tensors with a normal distribution (mean = 0.0, stddev = 0.02)
-          result = tf.keras.Sequential()                                               # helps to form a cluster of a layer that is linearly stacked into tf.keras.Model
+          initializer = tf.random_normal_initializer(0.0, 0.02) # Initializer that generates tensors with a normal distribution (mean = 0.0, stddev = 0.02)
+          result = tf.keras.Sequential()    # helps to form a cluster of a layer that is linearly stacked into tf.keras.Model
           result.add(tf.keras.layers.Conv2D(filters, size, strides=2, padding='same',
                      kernel_initializer=initializer, data_format="channels_last",
-                     use_bias=False))                                                  # spatial convolution over images Used to scale down the input shape
+                     use_bias=False))      # spatial convolution over images Used to scale down the input shape
 
           if apply_batchnorm:
-             result.add(tf.keras.layers.BatchNormalization())                          # Layer that normalizes its inputs.
+             result.add(tf.keras.layers.BatchNormalization()) # Layer that normalizes its inputs.
     
-          result.add(tf.keras.layers.LeakyReLU())                                      # Leaky version of a Rectified Linear Unit to activate neurons
+          result.add(tf.keras.layers.LeakyReLU())    # Leaky version of a Rectified Linear Unit to activate neurons
 
           return result
             
@@ -233,17 +234,17 @@ class main_fun():
           To scale up the network
           """
           
-          initializer = tf.random_normal_initializer(0., 0.02)                        # Initializer that generates tensors with a normal distribution, (mean = 0.0, stddev = 0.02 here)
-          result = tf.keras.Sequential()                                              # Sequential provides training and inference features on this model.
+          initializer = tf.random_normal_initializer(0., 0.02)  # Initializer that generates tensors with a normal distribution, (mean = 0.0, stddev = 0.02 here)
+          result = tf.keras.Sequential()                        # Sequential provides training and inference features on this model.
           result.add(tf.keras.layers.Conv2DTranspose(filters, size, strides=2,
                      padding='same', kernel_initializer=initializer,
-                     data_format="channels_last", use_bias=False))                    # spatial deconvolution over images Used to scale up the input shape
-          result.add(tf.keras.layers.BatchNormalization())                            # normalize the mini batches
+                     data_format="channels_last", use_bias=False))  # spatial deconvolution over images Used to scale up the input shape
+          result.add(tf.keras.layers.BatchNormalization())          # normalize the mini batches
 
           if apply_dropout:
-             result.add(tf.keras.layers.Dropout(0.5))                                 # randomly selected neurons are ignored during training
+             result.add(tf.keras.layers.Dropout(0.5))               # randomly selected neurons are ignored during training
 
-          result.add(tf.keras.layers.ReLU())                                          # Rectified Linear Unit activation function to activate neurons
+          result.add(tf.keras.layers.ReLU())                        # Rectified Linear Unit activation function to activate neurons
  
           return result 
 

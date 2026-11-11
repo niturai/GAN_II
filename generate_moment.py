@@ -52,11 +52,76 @@ pr_img9 = np.array(pred_img9)
 print(gr_img6.shape)
 
 # Calculate the Scatter of centroid and moments for ground truth and predicted image
-SixSc, SixS11, SixS20, SixS02, SixS12, SixS21, SixS30, SixS03 = md.mom_cal(gr_img6, pr_img6)
-nineSc, nineS11, nineS20, nineS02, nineS12, nineS21, nineS30, nineS03 = md.mom_cal(gr_img9, pr_img9)
+SixSc, SixS11, SixS20, SixS02, SixS12, SixS21, SixS30, SixS03, error = md.mom_cal(gr_img6, pr_img6)
+nineSc, nineS11, nineS20, nineS02, nineS12, nineS21, nineS30, nineS03, error = md.mom_cal(gr_img9, pr_img9)
 
 print('6Sc, 6S11, 6S20, 6S02, 6S12, 6S21, 6S30, 6S03', SixSc, SixS11, SixS20, SixS02, SixS12, SixS21, SixS30, SixS03)
 print('9Sc, 9S11, 9S20, 9S02, 9S12, 9S21, 9S30, 9S03', nineSc, nineS11, nineS20, nineS02, nineS12, nineS21, nineS30, nineS03)
+print("Centroid error:")
+print("Mean =", errors["centroid"]["mean_error"])
+print("SD   =", errors["centroid"]["std_error"])
+print("RMSE =", errors["centroid"]["rmse"])
+
+print("\nSecond-order moment mu11:")
+print("Mean signed error =", errors["mu11"]["mean_error"])
+print("SD                =", errors["mu11"]["std_error"])
+print("MAE               =", errors["mu11"]["mae"])
+print("RMSE              =", errors["mu11"]["rmse"])
+
+print("\nSecond-order moment mu20:")
+print("Mean signed error =", errors["mu20"]["mean_error"])
+print("SD                =", errors["mu20"]["std_error"])
+print("MAE               =", errors["mu20"]["mae"])
+print("RMSE              =", errors["mu20"]["rmse"])
+
+print("\nSecond-order moment mu02:")
+print("Mean signed error =", errors["mu02"]["mean_error"])
+print("SD                =", errors["mu02"]["std_error"])
+print("MAE               =", errors["mu02"]["mae"])
+print("RMSE              =", errors["mu02"]["rmse"])
+
+print("\nthird-order moment mu21:")
+print("Mean signed error =", errors["mu21"]["mean_error"])
+print("SD                =", errors["mu21"]["std_error"])
+print("MAE               =", errors["mu21"]["rmse"])
+print("RMSE              =", errors["mu21"]["mae"])
+
+print("\nthird-order moment mu12:")
+print("Mean signed error =", errors["mu12"]["mean_error"])
+print("SD                =", errors["mu12"]["std_error"])
+print("MAE               =", errors["mu12"]["rmse"])
+print("RMSE              =", errors["mu12"]["mae"])
+
+print("\nthird-order moment mu30:")
+print("Mean signed error =", errors["mu30"]["mean_error"])
+print("SD                =", errors["mu30"]["std_error"])
+print("MAE               =", errors["mu30"]["rmse"])
+print("RMSE              =", errors["mu30"]["mae"])
+
+print("\nthird-order moment mu03:")
+print("Mean signed error =", errors["mu03"]["mean_error"])
+print("SD                =", errors["mu03"]["std_error"])
+print("MAE               =", errors["mu03"]["rmse"])
+print("RMSE              =", errors["mu03"]["mae"])
+
+errors_N6 = md.parameter_errors(gr_img6, pr_img6)                  # Calculate errors for N6
+errors_N9 = md.parameter_errors(gr_img9, pr_img9)                  # Calculate errors for N9
+
+print("\nParameter reconstruction errors")
+print("-" * 75)
+print("{:<12} {:<25} {:<25}".format("Parameter", "N6 (MAE ± Std.)", "N9 (MAE ± Std.)"))
+print("-" * 75)
+
+for key in ["PA", "a", "b", "e"]:
+    n6_mae = errors_N6[key]["MAE"]
+    n6_std = errors_N6[key]["std_absolute_error"]
+
+    n9_mae = errors_N9[key]["MAE"]
+    n9_std = errors_N9[key]["std_absolute_error"]
+
+    print("{:<12} {:<25} {:<25}".format(key, f"{n6_mae:.4f} ± {n6_std:.4f}", f"{n9_mae:.4f} ± {n9_std:.4f}"))
+
+print("-" * 75)
 
 # visualise the moments of each generated images
 list_g6 = []

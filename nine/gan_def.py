@@ -3,6 +3,7 @@ from keras import backend as K
 from main_def import main_fun
 from IPython import display
 import tensorflow as tf
+import pandas as pd
 import numpy as np
 import datetime
 import time
@@ -167,7 +168,8 @@ class gan_fun():
           else:
              return prediction
             
-      def generate_images(self, model, test_input, target, show_diff = False, sampling = False, save_image = False, counter = None):
+      def generate_images(self, model, test_input, target, show_diff = False, 
+                          sampling = False, save_image = False, counter = None, output_dir="testing_image"):
           """
           Plots four images based on the model: Input, Prediction, Ground truth and (optionally) difference in the fourier plane.  
           Also checks, whether the image or its rotation is closer to the ground truth. 
@@ -193,7 +195,7 @@ class gan_fun():
           else:
              plt.figure(figsize=(15,15))
 
-          prediction = self.optional_rotation(prediction, target)                         # predicted image or its 180 rotated form based on matching nearer with ground truth or target
+          prediction = self.optional_rotation(prediction, target) # predicted image or its 180 rotated form based on matching nearer with ground truth or target
             
           if show_diff:
               difference = sfun.ff2d_diff(target[0,:,:,0], prediction, sampling=sampling)                       # difference of target image and predicted image
@@ -220,26 +222,21 @@ class gan_fun():
              if counter == None:
                 raise Warning("You do not have a counter. Images will be overwritten and NOT be saved.")
        
-             plot_name = f"testing_image/testing_image/image_{counter}"
+             os.makedirs(output_dir, exist_ok=True)
+             plot_name = os.path.join(output_dir, f"image_{counter}")
         
-             if counter == 0:
-                if not os.path.exists(f"{plot_name[:-8]}"):
-                   os.makedirs(f"{plot_name[:-8]}")
-                   print(f"{plot_name[:-8]} created.")
-    
-             plt.savefig(f"{plot_name}.eps", format='eps', dpi=500)
-             plt.savefig(f"{plot_name}.png")
-             
-             # save arrays as .npy
-             np.save(f"{plot_name}_input.npy",   test_input[0].numpy())
-             np.save(f"{plot_name}_target.npy",  target[0].numpy())
-             np.save(f"{plot_name}_prediction.npy", prediction)
+             plt.savefig(f"{plot_name}.png", dpi=300, bbox_inches='tight')
+
+             np.save(f"{plot_name}_input.npy", test_input[0].numpy())
+             np.save(f"{plot_name}_target.npy", target[0].numpy())
+             np.save(f"{plot_name}_prediction.npy", prediction.numpy())
 
              if show_diff:
                 np.save(f"{plot_name}_difference.npy", difference)
-             
+
+          plt.close()           
                          
-      def train_step(self, model1, model2, input_image, target, summary_writer, step):
+      def train_step(self, model1, model2, input_image, target, summary_writer, step, generator_optimizer, discriminator_optimizer):
           """
           Train the input image i.e. visibility data with a target imgae in given number of step.
           
@@ -255,33 +252,10 @@ class gan_fun():
           ------
           return the trained image.
           """
-
-          generator_optimizer = tf.keras.optimizers.Adam(self.learning_rate, beta_1 = 0.5)          # Generator Optimizer using the Adam algorithm
-          discriminator_optimizer = tf.keras.optimizers.Adam(self.learning_rate, beta_1 = 0.5)      # Discriminator Optimizer using the Adam algorithm
-          # Logging dirs
-          # Run name from hyperparameters
-          run_name = (
-                      f"cGAN_b{self.beta}_disc{self.disc_train_iterations}_"
-                      f"bs{1}_lr{self.learning_rate}_f{self.filtersize}"
-                     )
-
-          # --- Directories ---
-          checkpoint_dir = os.path.join("models", run_name)
-          os.makedirs(checkpoint_dir, exist_ok=True)
-
-          log_dir = os.path.join("logs", "fit", run_name)
-          os.makedirs(log_dir, exist_ok=True)
-          summary_writer = tf.summary.create_file_writer(log_dir)
-
-          # CSV logger
-          csv_path = os.path.join(log_dir, "losses.csv")
-          with open(csv_path, "w", newline="") as f:
-              writer = csv.writer(f)
-              writer.writerow(["step", "gen_total_loss", "gen_gan_loss", "gen_l1_loss", "disc_loss"])
                     
           # calculate the Generator loss function using training dataset as input for Generator and generated image also dataset for Discriminator              
           with tf.GradientTape() as gen_tape:
-               gen_output = model1(input_image, training=True)                                      # output of Generator using signal as input
+               gen_output = model1(input_image, training=True)# output of Generator using signal as input
                disc_generated_output = model2([input_image, gen_output], training=True)             # output of Discriminator using signal and generated image from Generator as input
                gen_total_loss, gen_gan_loss, gen_l1_loss = self.generator_loss(disc_generated_output, gen_output, target) # calculate the Generator loss
           
@@ -299,16 +273,10 @@ class gan_fun():
                    
               discriminator_gradients = disc_tape.gradient(disc_loss, model2.trainable_variables)               # calculate gradients for discriminator to optimize the error (loss)
               discriminator_optimizer.apply_gradients(zip(discriminator_gradients, model2.trainable_variables)) # apply gradients to optimizer to reduce the loss
-              
-          with summary_writer.as_default():                                                          # Write the summary of loss in Generator and Discriminator
-               tf.summary.scalar('gen_total_loss', gen_total_loss, step=step//1000)                  
-               tf.summary.scalar('gen_gan_loss', gen_gan_loss, step=step//1000)         
-               tf.summary.scalar('gen_l1_loss', gen_l1_loss, step=step//1000)
-               tf.summary.scalar('disc_loss', disc_loss, step=step//1000)
                
           return gen_total_loss, gen_gan_loss, gen_l1_loss, disc_loss
  
-      def fit(self, model1, model2, train_ds, test_ds, steps):
+      def fit(self, model1, model2, train_ds, test_ds, steps, output_dir="testing_image"):
           """
           Fitting the training data with test data.
           """
@@ -332,8 +300,6 @@ class gan_fun():
           log_dir = os.path.join("logs", "fit", run_name)
           os.makedirs(log_dir, exist_ok=True)
           summary_writer = tf.summary.create_file_writer(log_dir)
-                 
-          checkpoint_dir = "models/models/ellipsoids_run8.15_a0.005_b0.005_discrep1_itk_bs1_lr2em4_teles4_addedlayers_filtersize5_MS/" # name of the folder and file to save the summary
           
           checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt")
           checkpoint = tf.train.Checkpoint(generator_optimizer=generator_optimizer,
@@ -342,10 +308,29 @@ class gan_fun():
                                            
           csv_path = os.path.join(log_dir, "losses.csv")
           counter = 0
+          # Store training history
+          steps_list = []
+          gen_total_loss_list = []
+          gen_gan_loss_list = []
+          gen_l1_loss_list = []
+          disc_loss_list = []
           for step, (input_image, target) in enumerate(train_ds.repeat().take(steps)):
               gen_total_loss, gen_gan_loss, gen_l1_loss, disc_loss = self.train_step(
-                    model1, model2, input_image, target, summary_writer, step
+                    model1, model2, input_image, target, summary_writer, step, generator_optimizer, discriminator_optimizer
               )
+              
+              # Store losses
+              steps_list.append(step)
+              gen_total_loss_list.append(float(gen_total_loss))
+              gen_gan_loss_list.append(float(gen_gan_loss))
+              gen_l1_loss_list.append(float(gen_l1_loss))
+              disc_loss_list.append(float(disc_loss))
+              
+              with summary_writer.as_default(): # Write the summary of loss in Generator and Discriminator
+                   tf.summary.scalar('gen_total_loss', gen_total_loss, step=step//1000)                  
+                   tf.summary.scalar('gen_gan_loss', gen_gan_loss, step=step//1000)         
+                   tf.summary.scalar('gen_l1_loss', gen_l1_loss, step=step//1000)
+                   tf.summary.scalar('disc_loss', disc_loss, step=step//1000)
 
               # Write to CSV every 100 steps
               if step % 100 == 0:
@@ -360,7 +345,7 @@ class gan_fun():
                       print(f'Time taken for 1000 steps: {time.time()-start:.2f} sec\n')
                   start = time.time()
                   self.generate_images(model1, example_input, example_target,
-                                        show_diff=True, sampling=True, save_image=True, counter=counter)
+                                        show_diff=True, sampling=True, save_image=True, counter=counter, output_dir=os.path.join(output_dir, "validation"))
                   counter += 1
                   print(f"Step: {step//1000}k")
 
@@ -369,4 +354,14 @@ class gan_fun():
 
               if (step + 1) % 5000 == 0:
                   checkpoint.save(file_prefix=checkpoint_prefix)
+                  
+          history_df = pd.DataFrame({
+              "step": steps_list,
+              "gen_total_loss": gen_total_loss_list,
+              "gen_gan_loss": gen_gan_loss_list,
+              "gen_l1_loss": gen_l1_loss_list,
+              "disc_loss": disc_loss_list
+          })
+          
+          return history_df 
 

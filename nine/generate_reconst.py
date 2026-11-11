@@ -7,7 +7,7 @@ import re
 
 
 # Load all .npy file
-main = "testing_image/testing_image/"
+main = "testing_image/"
 
 data_path = os.path.join(main, "image_*_input.npy")
 files1 = glob.glob(data_path)
@@ -75,11 +75,12 @@ for i in range(len(Inp)):
     plt.title("Residuals of Images", fontweight='bold')
     plt.plot(residuals, color='red')
     plt.axhline(0, color='black', linestyle='--')
+    plt.ylim(-0.4, 0.4)
     #plt.xlabel("Pixel index")
     plt.gca().yaxis.set_major_formatter(mticker.FormatStrFormatter('%.2f'))
     #plt.ylabel("Mean Residuals")
     plt.tight_layout()
-    plt.savefig(f"testing_image/testing_image/image_{counter}.png", dpi=300)
+    plt.savefig(f"../result/nine/image/image_{counter}.png", dpi=300)
     counter += 1
     plt.clf()
     
